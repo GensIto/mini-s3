@@ -1,0 +1,22 @@
+[package]
+name = "mini-s3"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = "0.1.89"
+axum = "0.8.8"
+chrono = { version = "0.4.44", features = ["serde"] }
+dotenv = "0.15.0"
+quick-xml = "0.39.2"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+md5 = "0.7.0"
+sha2 = "0.11.0"
+sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite", "migrate"] }
+tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread", "signal", "net"] }
+tower = "0.5.3"
+tower-http = { version = "0.6.8", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1.23.0", features = ["v4"] }
