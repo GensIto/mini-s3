@@ -30,4 +30,19 @@ impl BucketService {
 
         Ok(bucket)
     }
+
+    pub async fn delete_bucket(
+        &self,
+        bucket_name: &str,
+        owner_access_key: &str,
+    ) -> Result<(), DomainError> {
+        self.repo
+            .delete_bucket(bucket_name, owner_access_key)
+            .await?;
+        tokio::fs::remove_dir_all(format!("data/{}", bucket_name))
+            .await
+            .map_err(|_| DomainError::Internal)?;
+
+        Ok(())
+    }
 }

@@ -44,6 +44,9 @@ aws --endpoint-url http://127.0.0.1:8080 s3api list-buckets
 # 3. テストファイルを作ってPutObject (PUT /test-bucket/hello.txt)
 echo "Hello, S3!" > /tmp/hello.txt
 aws --endpoint-url http://127.0.0.1:8080 s3api put-object --bucket test-bucket --key hello.txt --body /tmp/hello.txt --content-type text/plain
+
+# 4. バケット削除 (DELETE /test-bucket)
+aws --endpoint-url http://127.0.0.1:8080 s3api delete-bucket --bucket test-bucket
 ```
 
 ## DBテーブル構成

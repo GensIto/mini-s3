@@ -31,6 +31,11 @@ impl IntoResponse for ApiError {
                 "BucketAlreadyOwnedByYou",
                 "Your previous request to create the named bucket succeeded and you already own it.",
             ),
+            DomainError::BucketNotEmpty => (
+                StatusCode::CONFLICT,
+                "BucketNotEmpty",
+                "The bucket you tried to delete is not empty.",
+            ),
             DomainError::NotFound => (
                 StatusCode::NOT_FOUND,
                 "NoSuchBucket",

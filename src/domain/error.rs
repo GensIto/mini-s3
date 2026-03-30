@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DomainError {
     BucketAlreadyExists,
+    BucketNotEmpty,
     NotFound,
     Internal,
 }
@@ -11,6 +12,7 @@ impl fmt::Display for DomainError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DomainError::BucketAlreadyExists => write!(f, "bucket already exists"),
+            DomainError::BucketNotEmpty => write!(f, "bucket not empty"),
             DomainError::NotFound => write!(f, "not found"),
             DomainError::Internal => write!(f, "internal error"),
         }

@@ -99,4 +99,25 @@ impl BucketRepository for SqliteBucketRepository {
             created_at: now,
         })
     }
+
+    async fn delete_bucket(&self, name: &str, owner_access_key: &str) -> Result<(), DomainError> {
+        let result = sqlx::query("DELETE FROM buckets WHERE name = ? AND owner_access_key = ?")
+            .bind(name)
+            .bind(owner_access_key)
+            .execute(&self.pool)
+            .await
+            .inspect_err(|e| tracing::error!(error=%e, "sqlite delete_bucket query failed"))
+            .map_err(|e| match &e {
+                sqlx::Error::Database(db) if db.code().as_deref() == Some("787") => {
+                    DomainError::BucketNotEmpty
+                }
+                _ => DomainError::Internal,
+            })?;
+
+        if result.rows_affected() == 0 {
+            return Err(DomainError::NotFound);
+        }
+
+        Ok(())
+    }
 }

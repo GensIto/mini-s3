@@ -1,4 +1,5 @@
 use axum::extract::{Path, State};
+use axum::http::StatusCode;
 use axum::http::header::CONTENT_TYPE;
 use axum::response::IntoResponse;
 
@@ -9,15 +10,16 @@ fn default_owner() -> String {
     std::env::var("DEFAULT_OWNER_ACCESS_KEY").unwrap_or_else(|_| "local-dev".to_string())
 }
 
-pub async fn list_buckets(
-    State(state): State<AppState>,
-) -> Result<impl IntoResponse, ApiError> {
+pub async fn list_buckets(State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
     // TODO: Phase 2 で認証ミドルウェアから Extension<AccessKey> で受け取る
     let owner_access_key = default_owner();
     tracing::debug!(owner=%owner_access_key, "list_buckets called");
-    let buckets = state.bucket_service.list_buckets(&owner_access_key).await
+    let buckets = state
+        .bucket_service
+        .list_buckets(&owner_access_key)
+        .await
         .inspect_err(|e| tracing::error!(error=%e, "list_buckets failed"))?;
-    tracing::info!(count=buckets.len(), "list_buckets succeeded");
+    tracing::info!(count = buckets.len(), "list_buckets succeeded");
 
     let bucket_entries: String = buckets
         .iter()
@@ -67,4 +69,19 @@ pub async fn create_bucket(
     );
 
     Ok(([(CONTENT_TYPE, "application/xml")], xml))
+}
+
+pub async fn delete_bucket(
+    State(state): State<AppState>,
+    Path(bucket): Path<String>,
+) -> Result<impl IntoResponse, ApiError> {
+    // TODO: Phase 2 で認証ミドルウェアから Extension<AccessKey> で受け取る
+    let owner_access_key = default_owner();
+    state
+        .bucket_service
+        .delete_bucket(&bucket, &owner_access_key)
+        .await
+        .inspect_err(|e| tracing::error!(error=%e, "delete_bucket failed"))?;
+
+    Ok(StatusCode::NO_CONTENT)
 }

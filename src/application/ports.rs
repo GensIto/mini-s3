@@ -15,6 +15,7 @@ pub trait BucketRepository: Send + Sync {
         name: &str,
         owner_access_key: &str,
     ) -> Result<Bucket, DomainError>;
+    async fn delete_bucket(&self, name: &str, owner_access_key: &str) -> Result<(), DomainError>;
 }
 
 #[async_trait]

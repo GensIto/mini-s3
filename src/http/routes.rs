@@ -9,7 +9,9 @@ pub fn router(state: AppState) -> Router {
         .route("/", get(handlers::buckets::list_buckets))
         .route(
             "/{bucket}",
-            get(handlers::objects::list_or_head_bucket).put(handlers::buckets::create_bucket),
+            get(handlers::objects::list_or_head_bucket)
+                .put(handlers::buckets::create_bucket)
+                .delete(handlers::buckets::delete_bucket),
         )
         .route(
             "/{bucket}/{*key}",
