@@ -23,6 +23,33 @@ impl ObjectService {
         }
     }
 
+    pub async fn get_object(
+        &self,
+        bucket_name: &str,
+        key: &str,
+    ) -> Result<(Object, Vec<u8>), DomainError> {
+        let owner_access_key = default_owner();
+        let bucket = self
+            .bucket_repo
+            .get_bucket(&bucket_name, &owner_access_key)
+            .await
+            .inspect_err(
+                |e| tracing::warn!(bucket=%bucket_name, error=%e, "bucket lookup failed"),
+            )?;
+
+        let object = self.object_repo
+            .get_object(&bucket.bucket_id, key)
+            .await
+            .inspect_err(
+                |e| tracing::warn!(bucket_id=%bucket.bucket_id, key=%key, error=%e, "object lookup failed"),
+            )?;
+
+        let full_path = std::path::Path::new(&object.storage_path);
+        let body = tokio::fs::read(full_path).await?;
+
+        Ok((object, body.into()))
+    }
+
     pub async fn put_object(
         &self,
         body: axum::body::Bytes,
@@ -35,7 +62,9 @@ impl ObjectService {
             .bucket_repo
             .get_bucket(&bucket_name, &owner_access_key)
             .await
-            .inspect_err(|e| tracing::warn!(bucket=%bucket_name, error=%e, "bucket lookup failed"))?;
+            .inspect_err(
+                |e| tracing::warn!(bucket=%bucket_name, error=%e, "bucket lookup failed"),
+            )?;
 
         let etag = s3_etag_hex(body.as_ref());
         let content_type = content_type
@@ -50,8 +79,9 @@ impl ObjectService {
         if let Some(parent) = full_path.parent() {
             tokio::fs::create_dir_all(parent).await?;
         }
-        tokio::fs::write(full_path, &body).await
-            .inspect_err(|e| tracing::error!(path=%storage_path, error=%e, "failed to write object to disk"))?;
+        tokio::fs::write(full_path, &body).await.inspect_err(
+            |e| tracing::error!(path=%storage_path, error=%e, "failed to write object to disk"),
+        )?;
 
         tracing::debug!(object_id=%object_id, storage_path=%storage_path, "object written to disk");
 

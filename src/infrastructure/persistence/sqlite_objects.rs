@@ -14,8 +14,49 @@ impl SqliteObjectRepository {
     }
 }
 
+#[derive(sqlx::FromRow)]
+struct ObjectRow {
+    object_id: String,
+    bucket_id: String,
+    key: String,
+    size: i64,
+    content_type: String,
+    etag: String,
+    storage_path: String,
+    created_at: String,
+    updated_at: String,
+}
+
+impl From<ObjectRow> for Object {
+    fn from(row: ObjectRow) -> Self {
+        Object {
+            object_id: row.object_id,
+            bucket_id: row.bucket_id,
+            key: row.key,
+            size: row.size,
+            content_type: row.content_type,
+            etag: row.etag,
+            storage_path: row.storage_path,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+        }
+    }
+}
+
 #[async_trait]
 impl ObjectRepository for SqliteObjectRepository {
+    async fn get_object(&self, bucket_id: &str, key: &str) -> Result<Object, DomainError> {
+        let row = sqlx::query_as::<_, ObjectRow>("SELECT * FROM objects WHERE bucket_id = ? AND key = ?")
+            .bind(bucket_id)
+            .bind(key)
+            .fetch_one(&self.pool)
+            .await
+            .inspect_err(|e| tracing::error!(error=%e, bucket_id=%bucket_id, key=%key, "sqlite get_object query failed"))
+            .map_err(|_| DomainError::Internal)?;
+
+        Ok(row.into())
+    }
+
     async fn put_object(&self, object: &Object) -> Result<(), DomainError> {
         sqlx::query(
             r#"

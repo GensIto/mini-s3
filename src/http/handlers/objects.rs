@@ -34,20 +34,18 @@ pub async fn list_or_head_bucket(
 }
 
 pub async fn get_object_keyed(
-    State(_state): State<AppState>,
-    Path((_bucket, _key)): Path<(String, String)>,
-) -> impl IntoResponse {
-    // TODO: 実装
-    (
-        StatusCode::NOT_FOUND,
-        [(CONTENT_TYPE, "application/xml")],
-        r#"<?xml version="1.0" encoding="UTF-8"?>
-<Error>
-  <Code>NoSuchKey</Code>
-  <Message>The specified key does not exist.</Message>
-</Error>"#
-            .to_string(),
-    )
+    State(state): State<AppState>,
+    Path((bucket, key)): Path<(String, String)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let (object, body) = state.object_service.get_object(&bucket, &key).await?;
+    Ok((
+        StatusCode::OK,
+        [
+            (CONTENT_TYPE, object.content_type),
+            (ETAG, format!("\"{}\"", object.etag)),
+        ],
+        body,
+    ))
 }
 
 pub async fn put_object_keyed(
