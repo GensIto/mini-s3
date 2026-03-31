@@ -51,6 +51,10 @@ aws --endpoint-url http://127.0.0.1:8080 s3api delete-bucket --bucket test-bucke
 # 5. object取得 (GET /test-bucket)
 ### ダウンロード
 aws --endpoint-url http://127.0.0.1:8080 s3api get-object --bucket test-bucket --key hello.txt downloaded.txt
+
+# 6. object削除 (DELETE /test-bucket)
+### ダウンロード
+aws --endpoint-url http://127.0.0.1:8080 s3api delete-object --bucket test-bucket --key hello.txt
 ```
 
 ## DBテーブル構成

@@ -84,9 +84,9 @@ pub async fn put_object_keyed(
 }
 
 pub async fn delete_object_keyed(
-    State(_state): State<AppState>,
-    Path((_bucket, _key)): Path<(String, String)>,
-) -> impl IntoResponse {
-    // TODO: 実装
-    StatusCode::NO_CONTENT
+    State(state): State<AppState>,
+    Path((bucket, key)): Path<(String, String)>,
+) -> Result<impl IntoResponse, ApiError> {
+    state.object_service.delete_object(&bucket, &key).await?;
+    Ok(StatusCode::NO_CONTENT)
 }

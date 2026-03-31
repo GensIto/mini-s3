@@ -22,4 +22,5 @@ pub trait BucketRepository: Send + Sync {
 pub trait ObjectRepository: Send + Sync {
     async fn get_object(&self, bucket_id: &str, key: &str) -> Result<Object, DomainError>;
     async fn put_object(&self, object: &Object) -> Result<(), DomainError>;
+    async fn delete_object(&self, bucket_id: &str, key: &str) -> Result<(), DomainError>;
 }

@@ -101,4 +101,25 @@ impl ObjectService {
 
         Ok(object)
     }
+
+    pub async fn delete_object(&self, bucket_name: &str, key: &str) -> Result<(), DomainError> {
+        let owner_access_key = default_owner();
+        let bucket = self
+            .bucket_repo
+            .get_bucket(&bucket_name, &owner_access_key)
+            .await?;
+        self.object_repo
+            .delete_object(&bucket.bucket_id, &key)
+            .await?;
+
+        let storage_path = format!("data/{}/{}", bucket.name, key);
+        let full_path = std::path::Path::new(&storage_path);
+
+        tokio::fs::remove_file(full_path).await.inspect_err(
+            |e| tracing::error!(path=%full_path.to_string_lossy(), error=%e, "failed to delete object from disk"),
+        )?;
+
+        tracing::debug!(path=%full_path.to_string_lossy(), "object deleted from disk");
+        Ok(())
+    }
 }

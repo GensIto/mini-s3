@@ -87,4 +87,16 @@ impl ObjectRepository for SqliteObjectRepository {
 
         Ok(())
     }
+
+    async fn delete_object(&self, bucket_id: &str, key: &str) -> Result<(), DomainError> {
+        sqlx::query("DELETE FROM objects WHERE bucket_id = ? AND key = ?")
+            .bind(bucket_id)
+            .bind(key)
+            .execute(&self.pool)
+            .await
+            .inspect_err(|e| tracing::error!(error=%e, bucket_id=%bucket_id, key=%key, "sqlite delete_object query failed"))
+            .map_err(|_| DomainError::Internal)?;
+
+        Ok(())
+    }
 }
