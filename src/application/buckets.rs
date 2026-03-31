@@ -12,6 +12,22 @@ impl BucketService {
         Self { repo }
     }
 
+    pub async fn head_bucket(
+        &self,
+        bucket_name: &str,
+        owner_access_key: &str,
+    ) -> Result<Bucket, DomainError> {
+        let bucket = self
+            .repo
+            .get_bucket(bucket_name, owner_access_key)
+            .await
+            .inspect_err(
+                |e| tracing::warn!(bucket=%bucket_name, error=%e, "bucket lookup failed"),
+            )?;
+
+        Ok(bucket)
+    }
+
     pub async fn list_buckets(&self, owner_access_key: &str) -> Result<Vec<Bucket>, DomainError> {
         self.repo.list_buckets(owner_access_key).await
     }

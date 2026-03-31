@@ -10,6 +10,23 @@ fn default_owner() -> String {
     std::env::var("DEFAULT_OWNER_ACCESS_KEY").unwrap_or_else(|_| "local-dev".to_string())
 }
 
+pub async fn head_bucket(
+    State(state): State<AppState>,
+    Path(bucket): Path<String>,
+) -> Result<StatusCode, ApiError> {
+    let owner_access_key = default_owner();
+
+    match state
+        .bucket_service
+        .head_bucket(&bucket, &owner_access_key)
+        .await
+    {
+        Ok(_bucket) => Ok(StatusCode::OK),
+        Err(crate::domain::DomainError::NoSuchBucket(_)) => Ok(StatusCode::NOT_FOUND),
+        Err(e) => Err(e.into()),
+    }
+}
+
 pub async fn list_buckets(State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
     // TODO: Phase 2 で認証ミドルウェアから Extension<AccessKey> で受け取る
     let owner_access_key = default_owner();
