@@ -52,7 +52,10 @@ impl ObjectRepository for SqliteObjectRepository {
             .fetch_one(&self.pool)
             .await
             .inspect_err(|e| tracing::error!(error=%e, bucket_id=%bucket_id, key=%key, "sqlite get_object query failed"))
-            .map_err(|_| DomainError::Internal)?;
+            .map_err(|e| match &e {
+                sqlx::Error::RowNotFound => DomainError::NoSuchKey(key.to_string()),
+                _ => DomainError::Internal,
+            })?;
 
         Ok(row.into())
     }

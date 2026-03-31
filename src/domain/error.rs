@@ -4,8 +4,12 @@ use std::fmt;
 pub enum DomainError {
     BucketAlreadyExists,
     BucketNotEmpty,
-    NotFound,
     Internal,
+    NoSuchBucket(String),
+    NoSuchKey(String),
+    InvalidBucketName,
+    AccessDenied,
+    SignatureDoesNotMatch,
 }
 
 impl fmt::Display for DomainError {
@@ -13,8 +17,12 @@ impl fmt::Display for DomainError {
         match self {
             DomainError::BucketAlreadyExists => write!(f, "bucket already exists"),
             DomainError::BucketNotEmpty => write!(f, "bucket not empty"),
-            DomainError::NotFound => write!(f, "not found"),
             DomainError::Internal => write!(f, "internal error"),
+            DomainError::NoSuchBucket(bucket_name) => write!(f, "no such bucket: {}", bucket_name),
+            DomainError::NoSuchKey(key) => write!(f, "no such key: {}", key),
+            DomainError::InvalidBucketName => write!(f, "invalid bucket name"),
+            DomainError::AccessDenied => write!(f, "access denied"),
+            DomainError::SignatureDoesNotMatch => write!(f, "signature does not match"),
         }
     }
 }

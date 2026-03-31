@@ -1,3 +1,4 @@
+use crate::domain::object;
 use crate::http::error::ApiError;
 use axum::extract::{Path, Query, State};
 use axum::http::header::{CONTENT_TYPE, ETAG};
@@ -31,6 +32,18 @@ pub async fn list_or_head_bucket(
     };
 
     ([(CONTENT_TYPE, "application/xml")], xml)
+}
+
+pub async fn head_object_keyed(
+    State(state): State<AppState>,
+    Path((bucket, key)): Path<(String, String)>,
+) -> Result<StatusCode, ApiError> {
+    match state.object_service.head_object(&bucket, &key).await {
+        Ok(_object) => Ok(StatusCode::OK),
+        Err(crate::domain::DomainError::NoSuchBucket(_))
+        | Err(crate::domain::DomainError::NoSuchKey(_)) => Ok(StatusCode::NOT_FOUND),
+        Err(e) => Err(e.into()),
+    }
 }
 
 pub async fn get_object_keyed(

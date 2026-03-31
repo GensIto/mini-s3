@@ -59,7 +59,7 @@ impl BucketRepository for SqliteBucketRepository {
         .fetch_one(&self.pool)
         .await
         .map_err(|e| match &e {
-            sqlx::Error::RowNotFound => DomainError::NotFound,
+            sqlx::Error::RowNotFound => DomainError::NoSuchBucket(bucket_name.to_string()),
             _ => DomainError::Internal,
         })?;
 
@@ -115,7 +115,7 @@ impl BucketRepository for SqliteBucketRepository {
             })?;
 
         if result.rows_affected() == 0 {
-            return Err(DomainError::NotFound);
+            return Err(DomainError::NoSuchBucket(name.to_string()));
         }
 
         Ok(())

@@ -23,6 +23,26 @@ impl ObjectService {
         }
     }
 
+    pub async fn head_object(&self, bucket_name: &str, key: &str) -> Result<Object, DomainError> {
+        let owner_access_key = default_owner();
+        let bucket = self
+            .bucket_repo
+            .get_bucket(&bucket_name, &owner_access_key)
+            .await
+            .inspect_err(
+                |e| tracing::warn!(bucket=%bucket_name, error=%e, "bucket lookup failed"),
+            )?;
+
+        let object = self.object_repo
+            .get_object(&bucket.bucket_id, key)
+            .await
+            .inspect_err(
+                |e| tracing::warn!(bucket_id=%bucket.bucket_id, key=%key, error=%e, "object lookup failed"),
+            )?;
+
+        Ok(object)
+    }
+
     pub async fn get_object(
         &self,
         bucket_name: &str,

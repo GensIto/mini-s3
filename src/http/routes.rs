@@ -1,5 +1,5 @@
 use axum::Router;
-use axum::routing::get;
+use axum::routing::{get, head};
 
 use crate::http::handlers;
 use crate::http::state::AppState;
@@ -15,7 +15,8 @@ pub fn router(state: AppState) -> Router {
         )
         .route(
             "/{bucket}/{*key}",
-            get(handlers::objects::get_object_keyed)
+            head(handlers::objects::head_object_keyed)
+                .get(handlers::objects::get_object_keyed)
                 .put(handlers::objects::put_object_keyed)
                 .delete(handlers::objects::delete_object_keyed),
         )
