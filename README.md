@@ -57,6 +57,23 @@ aws --endpoint-url http://127.0.0.1:8080 s3api get-object --bucket test-bucket -
 aws --endpoint-url http://127.0.0.1:8080 s3api delete-object --bucket test-bucket --key hello.txt
 ```
 
+```
+BASE="aws --endpoint-url http://127.0.0.1:8080 --region us-east-1"
+${=BASE} s3api head-bucket --bucket test-bucket
+
+# HeadBucket（存在しない）
+${=BASE} s3api head-bucket --bucket no-such-bucket-xyz
+
+# オブジェクトを置く（HeadObject の前提）
+${=BASE} s3 cp ./README.md s3://test-bucket/photos/2024/cat.jpg
+
+# HeadObject（存在する）
+${=BASE} s3api head-object --bucket test-bucket --key photos/2024/cat.jpg
+
+# HeadObject（存在しない）
+${=BASE} s3api head-object --bucket test-bucket --key photos/2024/missing.jpg
+```
+
 ## DBテーブル構成
 
 ```
